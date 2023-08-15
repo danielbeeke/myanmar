@@ -30,9 +30,15 @@
     "eslint": "8.44.0",
     "eslint-plugin-qwik": "^1.2.6",
     "prettier": "2.8.8",
+    "sass": "^1.64.2",
     "typescript": "5.1.6",
     "undici": "5.22.1",
     "vite": "4.4.0",
     "vite-tsconfig-paths": "4.2.0"
+  },
+  "dependencies": {
+    "csv-parse": "^5.4.0",
+    "maplibre-gl": "^3.2.2",
+    "string-to-color": "^2.2.2"
   }
 }
