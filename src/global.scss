@@ -94,3 +94,27 @@ body.loaded {
   display: flex;
   gap: 10px;
 }
+
+.filter {
+  margin-bottom: 20px;
+
+  strong {
+    display: block;
+    margin-bottom: 10px;
+  }
+}
+
+.pickers {
+  display: flex;
+  gap: 20px;
+
+  input {
+    display: block;
+    border: 1px solid white;
+    padding: 10px 20px;
+    width: 100%;
+    color: white;
+    appearance: none;
+    background-color: transparent;  
+  }
+}

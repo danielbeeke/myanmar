@@ -1,17 +1,19 @@
 import { parse } from 'csv-parse/browser/esm/sync';
 import { Map, GeoJSONSource } from 'maplibre-gl'
 import { LayerSpecification, SourceSpecification } from 'maplibre-gl'
+import { MinMaxSet } from './MinMaxSet';
 
 type Mapping = {
   type: 'string' | 'integer' | 'date'
   name?: string
   aggregate?: true,
-  filterable?: true,
+  filterable?: 'select' | 'boolean' | 'date',
   filter?: string,
-  label?: string
+  label?: string,
+  operator?: FilterOperators
 }
 
-// map.getSource('data').setData(sample);
+export type FilterOperators = '==' | '>' | '><'
 
 export class ClusteredData {
   public geojsonFeatures: any
@@ -19,8 +21,8 @@ export class ClusteredData {
   public dataUrl: string
   public mapping: { [key: string]: Mapping}
   public colors: Array<string>
-  public filters: { [key: string]: Set<string> } = {}
-  public selectedFilters: { [key: string]: string } = {}
+  public filters: { [key: string]: Set<string> | MinMaxSet<number> } = {}
+  public selectedFilters: { [key: string]: [string | boolean, FilterOperators] } = {}
   public map: Map | undefined
 
   constructor (name: string, dataUrl: string, mapping: { [key: string]: Mapping}, colors: Array<string>) {
@@ -47,11 +49,11 @@ export class ClusteredData {
 
         const outputName = mapping.name ?? sourceName
 
-        if (mapping.filterable) {
-          if (!this.filters[sourceName]) this.filters[sourceName] = new Set()
+        if (mapping.filterable && !this.filters[sourceName]) this.filters[sourceName] = mapping.filterable === 'date' ? new MinMaxSet() : new Set()
+        if (mapping.filterable && ['select', 'date'].includes(mapping.filterable)) {
           this.filters[sourceName].add(value)
         }
-        
+
         return [outputName, value]
       }))
 
@@ -72,6 +74,8 @@ export class ClusteredData {
         return mappedObject.properties[outputName] === mapping.filter
       })
     })
+
+    console.log(this.filters)
   }
 
   setMap (map: Map) {
@@ -83,12 +87,12 @@ export class ClusteredData {
     return aggregate?.[0]
   }
 
-  setFilter (name: string, value: string) {
+  setFilter (name: string, value: string | boolean, operator: FilterOperators) {
     if (value === '_none') {
       delete this.selectedFilters[name]
     }
     else {
-      this.selectedFilters[name] = value
+      this.selectedFilters[name] = [value, operator]
     }
     const source = this.map?.getSource(this.name)
     const newGeoJson = this.asFeatureCollection()
@@ -102,15 +106,17 @@ export class ClusteredData {
           type: 'FeatureCollection',
           features: this.geojsonFeatures.filter((feature: any) => {
             if (!Object.keys(this.selectedFilters).length) return true
-            return Object.entries(this.selectedFilters).every(([name, value]) => {
-              return feature.properties[name] === value
+            return Object.entries(this.selectedFilters).every(([name, [value, operator]]) => {
+              if (operator === '==') return feature.properties[name] === value
+              if (operator === '><') return feature.properties[name] === value
+              if (operator === '>') return feature.properties[name] > value
             })
           })
       }
     } as const
   }
 
-  async asClusters ({ startDate, endDate }: { startDate: number, endDate: number }) {
+  async asClusters () {
     await this.init()
 
     const colorGradient = this.colors

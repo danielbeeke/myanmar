@@ -6,6 +6,16 @@ import { createHighLightedCountryLayer } from '~/helpers/createHighLightedCountr
 import { ClusteredData } from '~/helpers/ClusteredData';
 import { ColoredGeoJson } from '~/helpers/ColoredGeoJson'
 
+import SelectField from '~/components/form/Select';
+import BooleanField from '~/components/form/Boolean';
+import DateField from '~/components/form/Date';
+
+const formFields = {
+  select: SelectField,
+  boolean: BooleanField,
+  date: DateField
+}
+
 const violenceAgainstCivilians = new ClusteredData('violence', '/data/violence-against-civilians.csv', {
   timestamp: { type: 'integer', name: 'date', label: 'Date', filterable: 'date' },
   sub_event_type: { type: 'string', name: 'subtype', filterable: 'select', label: 'Event' },
@@ -27,7 +37,7 @@ export default component$(() => {
     startDate: Math.floor(new Date('2023-08-01').valueOf() / 1000),
     endDate: Math.floor(new Date().valueOf() / 1000),
     selectedFeatures: [] as unknown as NoSerialize<MapGeoJSONFeature[]>,
-    filters: null
+    filters: {} as { [key: string]: any }
   })
 
   useVisibleTask$(async () => {
@@ -59,7 +69,7 @@ export default component$(() => {
 
     map.on('load', () => {
       document.body.classList.add('loaded')
-      console.log(filters)
+      store.filters = filters
 
       map.on('click', (e) => {
         const bbox = [
@@ -78,14 +88,17 @@ export default component$(() => {
   const ethnicFeatures = store.selectedFeatures?.filter(feature => feature.source === 'ethnics') ?? []
   const violenceFeatures = store.selectedFeatures?.filter(feature => feature.source === 'violence') ?? []
 
-  console.log(violenceFeatures)
 
+  
   return (
     <>
       <div id="map"></div>
 
       <div class="sidebar">
-        {/* <div class="filters">{store.filters ? store.filters : null}</div> */}
+        <div class="filters">{store.filters ? Object.entries(store.filters).map(([name, schema]) => {
+          const Element = formFields[schema.type as keyof typeof formFields]
+          return <Element schema={schema} onChange$={(value, operator) => violenceAgainstCivilians.setFilter(name, value, operator)} />
+        }) : null}</div>
 
         {ethnicFeatures.length ? <div class="ethnics">
           {ethnicFeatures.map(ethnic => <span class="ethnic-label" style={{ background: ethnic.properties.color }}>{ethnic.properties.G1SHORTNAM}</span>)}
