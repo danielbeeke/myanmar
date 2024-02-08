@@ -1,5 +1,5 @@
 import stc from 'string-to-color'
-import { LayerSpecification, SourceSpecification } from 'maplibre-gl'
+import type { LayerSpecification, SourceSpecification } from 'maplibre-gl'
 
 export class ColoredGeoJson {
 

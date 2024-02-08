@@ -1,5 +1,5 @@
 import { component$ } from "@builder.io/qwik";
-import { FilterOperators } from '~/helpers/ClusteredData'
+import type { FilterOperators } from '~/helpers/ClusteredData'
 
 export default component$(({ schema, onChange$ }: { schema: any, onChange$: (value: boolean, operator: FilterOperators) => void }) => {
 

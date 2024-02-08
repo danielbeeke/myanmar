@@ -1,8 +1,11 @@
-import { component$, noSerialize, useStore, useVisibleTask$, NoSerialize } from "@builder.io/qwik";
+import type { NoSerialize} from "@builder.io/qwik";
+import { component$, noSerialize, useStore, useVisibleTask$, $ } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
-import { Map, PointLike, MapGeoJSONFeature } from 'maplibre-gl';
+import type { PointLike, MapGeoJSONFeature } from 'maplibre-gl';
+import { Map } from 'maplibre-gl';
 import 'maplibre-gl/src/css/maplibre-gl.css';
 import { createHighLightedCountryLayer } from '~/helpers/createHighLightedCountryLayer'
+import type { FilterOperators } from '~/helpers/ClusteredData';
 import { ClusteredData } from '~/helpers/ClusteredData';
 import { ColoredGeoJson } from '~/helpers/ColoredGeoJson'
 
@@ -63,7 +66,7 @@ export default component$(() => {
     for (const layer of ethnicLayers) map.addLayer(layer)
 
     violenceAgainstCivilians.setMap(map)
-    const { sources: violenceSources, layers: violenceLayers, filters } = await violenceAgainstCivilians.asClusters(store)
+    const { sources: violenceSources, layers: violenceLayers, filters } = await violenceAgainstCivilians.asClusters()
     for (const [name, source] of Object.entries(violenceSources)) map.addSource(name, source)
     for (const layer of violenceLayers) map.addLayer(layer)
 
@@ -97,7 +100,7 @@ export default component$(() => {
       <div class="sidebar">
         <div class="filters">{store.filters ? Object.entries(store.filters).map(([name, schema]) => {
           const Element = formFields[schema.type as keyof typeof formFields]
-          return <Element schema={schema} onChange$={(value, operator) => violenceAgainstCivilians.setFilter(name, value, operator)} />
+          return <Element schema={schema} onChange$={$((value: string | boolean, operator: FilterOperators) => violenceAgainstCivilians.setFilter(name, value, operator))} />
         }) : null}</div>
 
         {ethnicFeatures.length ? <div class="ethnics">

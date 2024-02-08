@@ -1,6 +1,6 @@
 import { parse } from 'csv-parse/browser/esm/sync';
-import { Map, GeoJSONSource } from 'maplibre-gl'
-import { LayerSpecification, SourceSpecification } from 'maplibre-gl'
+import type { Map, GeoJSONSource } from 'maplibre-gl'
+import type { LayerSpecification, SourceSpecification } from 'maplibre-gl'
 import { MinMaxSet } from './MinMaxSet';
 
 type Mapping = {
